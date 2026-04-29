@@ -7,12 +7,6 @@ from networkx.algorithms.community import greedy_modularity_communities
 
 st.set_page_config(page_title='Actor Collaboration Network Dashboard', layout='wide')
 
-
-@st.cache_data
-def load_data(uploaded_file):
-    return pd.read_csv(uploaded_file)
-
-
 @st.cache_resource
 def build_network(df):
     actors_df = df[['Star1', 'Star2', 'Star3', 'Star4']].dropna().copy()
@@ -33,6 +27,7 @@ def build_network(df):
 
     deg_cent = nx.degree_centrality(G)
     bet_cent = nx.betweenness_centrality(G)
+    close_cent = nx.closeness_centrality(G)
 
     top_degree = sorted(deg_cent.items(), key=lambda x: x[1], reverse=True)[:10]
     top_between = sorted(bet_cent.items(), key=lambda x: x[1], reverse=True)[:10]
@@ -51,6 +46,7 @@ def build_network(df):
         'components': components,
         'deg_cent': deg_cent,
         'bet_cent': bet_cent,
+        'close_cent': close_cent,
         'top_degree': top_degree,
         'top_between': top_between,
         'communities': communities,
@@ -160,7 +156,7 @@ with tabs[2]:
         ax_bet_bar.set_xlabel('Betweenness Centrality')
         st.pyplot(fig_bet_bar)
 
-    st.subheader("Intrepretation:")
+    st.subheader("Interpretation:")
     st.markdown(''' 
                 Will add more info here later.''')
 
@@ -194,7 +190,7 @@ with tabs[3]:
         ax_comm.set_ylabel('Frequency')
         st.pyplot(fig_comm)
 
-    st.subheader("Intrepretation:")
+    st.subheader("Interpretation:")
     st.markdown(''' 
                 Will add more info here later.''')
 
