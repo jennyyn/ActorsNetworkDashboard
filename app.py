@@ -36,6 +36,11 @@ def build_network(df):
     communities = list(greedy_modularity_communities(G))
     community_sizes = sorted([len(c) for c in communities], reverse=True)
 
+    community_map = {}
+    for i, community in enumerate(communities):
+        for actor in community:
+            community_map[actor] = i
+
     largest_cc = max(components, key=len)
     G_cc = G.subgraph(largest_cc).copy()
 
@@ -53,6 +58,7 @@ def build_network(df):
         'top_close': top_close,
         'communities': communities,
         'community_sizes': community_sizes,
+        'community_map': community_map,
         'G_cc': G_cc,
     }
 
@@ -116,22 +122,100 @@ with tabs[1]:
     st.header('Network Visualization')
     st.caption('This sample view helps users explore the structure of actor collaborations without overwhelming the screen.')
 
-    sub_nodes = list(G.nodes())[:subgraph_size]
-    subgraph = G.subgraph(sub_nodes)
-    fig_net, ax_net = plt.subplots(figsize=(8, 8))
-    pos = nx.spring_layout(subgraph, seed=42)
-    nx.draw(subgraph, pos, node_size=45, with_labels=False, ax=ax_net)
-    ax_net.set_title(f'Actor Collaboration Network Sample ({subgraph_size} actors)')
+    # Use the highest-degree actors so the sample is meaningful
+    top_sample_nodes = [
+        actor for actor, degree in sorted(
+            G.degree(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:subgraph_size]
+    ]
+
+    subgraph = G.subgraph(top_sample_nodes).copy()
+
+    pos = nx.spring_layout(
+        subgraph,
+        seed=42,
+        k=0.45
+    )
+
+    node_degrees = dict(subgraph.degree())
+    node_sizes = [
+        80 + node_degrees[node] * 35
+        for node in subgraph.nodes()
+    ]
+
+    node_colors = [
+        results['community_map'].get(node, 0)
+        for node in subgraph.nodes()
+    ]
+
+    edge_widths = [
+        0.5 + subgraph[u][v].get('weight', 1)
+        for u, v in subgraph.edges()
+    ]
+
+    fig_net, ax_net = plt.subplots(figsize=(11, 9))
+
+    nx.draw_networkx_edges(
+        subgraph,
+        pos,
+        ax=ax_net,
+        alpha=0.25,
+        width=edge_widths
+    )
+
+    nodes = nx.draw_networkx_nodes(
+        subgraph,
+        pos,
+        ax=ax_net,
+        node_size=node_sizes,
+        node_color=node_colors,
+        cmap=plt.cm.tab20,
+        alpha=0.9
+    )
+
+    # Label only the most connected actors to avoid clutter
+    label_nodes = dict(
+        sorted(
+            node_degrees.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:12]
+    )
+
+    labels = {node: node for node in label_nodes}
+
+    nx.draw_networkx_labels(
+        subgraph,
+        pos,
+        labels=labels,
+        font_size=8,
+        ax=ax_net
+    )
+
+    ax_net.set_title(
+        f'Actor Collaboration Network Sample: Top {subgraph_size} Actors by Degree',
+        fontsize=14
+    )
+    ax_net.axis('off')
+
     st.pyplot(fig_net)
+
+    st.caption(
+        "Node size represents number of direct collaborators. "
+        "Node color represents detected community. "
+        "Thicker edges represent repeated shared movie appearances."
+    )
 
     st.subheader("Interpretation:")
     st.markdown(
         """
-        This network sample shows how actors are connected through shared movie appearances.
-        Because the full network is large, the sample view helps reveal the general structure without overcrowding the screen.
+        This graph displays a focused sample of the most connected actors in the collaboration network.
+        Larger nodes represent actors with more direct collaborators, while node color represents detected community membership.
 
-        Densely connected areas suggest groups of actors who appear together directly or through short collaboration paths.
-        Isolated or loosely connected areas suggest that some actors belong to smaller collaboration groups rather than the main network.
+        This makes the visualization easier to interpret than a random sample because it highlights the actors who play larger structural roles.
+        Dense areas of the graph suggest collaboration clusters, while connections between differently colored groups may indicate actors who help bridge communities.
         """
     )
 
