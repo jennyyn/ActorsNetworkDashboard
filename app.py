@@ -31,6 +31,7 @@ def build_network(df):
 
     top_degree = sorted(deg_cent.items(), key=lambda x: x[1], reverse=True)[:10]
     top_between = sorted(bet_cent.items(), key=lambda x: x[1], reverse=True)[:10]
+    top_close = sorted(close_cent.items(), key=lambda x: x[1], reverse=True)[:10]
 
     communities = list(greedy_modularity_communities(G))
     community_sizes = sorted([len(c) for c in communities], reverse=True)
@@ -49,6 +50,7 @@ def build_network(df):
         'close_cent': close_cent,
         'top_degree': top_degree,
         'top_between': top_between,
+        'top_close': top_close,
         'communities': communities,
         'community_sizes': community_sizes,
         'G_cc': G_cc,
@@ -128,7 +130,7 @@ with tabs[1]:
 
 with tabs[2]:
     st.header('Central Actors')
-    left, right = st.columns(2)
+    left, middle, right = st.columns(3)
 
     with left:
         st.subheader('Top Actors by Degree Centrality')
@@ -142,6 +144,19 @@ with tabs[2]:
         ax_deg_bar.set_title('Top Actors by Degree Centrality')
         ax_deg_bar.set_xlabel('Degree Centrality')
         st.pyplot(fig_deg_bar)
+
+    with middle:
+        st.subheader('Top Actors by Closeness Centrality')
+        top_close_df = pd.DataFrame(results['top_close'][:top_n], columns=['Actor', 'Closeness Centrality'])
+        top_close_df['Closeness Centrality'] = top_close_df['Closeness Centrality'].round(5)
+        st.dataframe(top_close_df, use_container_width=True)
+
+        fig_close_bar, ax_close_bar = plt.subplots(figsize=(7, 4))
+        ax_close_bar.barh(top_close_df['Actor'], top_close_df['Closeness Centrality'])
+        ax_close_bar.invert_yaxis()
+        ax_close_bar.set_title('Top Actors by Closeness Centrality')
+        ax_close_bar.set_xlabel('Closeness Centrality')
+        st.pyplot(fig_close_bar)
 
     with right:
         st.subheader('Top Actors by Betweenness Centrality')
@@ -158,7 +173,9 @@ with tabs[2]:
 
     st.subheader("Interpretation:")
     st.markdown(''' 
-                Will add more info here later.''')
+                Degree centrality highlights actors with many direct collaborators.
+Closeness centrality highlights actors who are structurally close to many others in the network.
+Betweenness centrality highlights actors who may act as bridges between different collaboration groups.''')
 
 with tabs[3]:
     st.header('Network Patterns')
