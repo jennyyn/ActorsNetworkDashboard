@@ -29,9 +29,9 @@ def build_network(df):
     bet_cent = nx.betweenness_centrality(G)
     close_cent = nx.closeness_centrality(G)
 
-    top_degree = sorted(deg_cent.items(), key=lambda x: x[1], reverse=True)[:10]
-    top_between = sorted(bet_cent.items(), key=lambda x: x[1], reverse=True)[:10]
-    top_close = sorted(close_cent.items(), key=lambda x: x[1], reverse=True)[:10]
+    top_degree = sorted(deg_cent.items(), key=lambda x: x[1], reverse=True)
+    top_between = sorted(bet_cent.items(), key=lambda x: x[1], reverse=True)
+    top_close = sorted(close_cent.items(), key=lambda x: x[1], reverse=True)
 
     communities = list(greedy_modularity_communities(G))
     community_sizes = sorted([len(c) for c in communities], reverse=True)
