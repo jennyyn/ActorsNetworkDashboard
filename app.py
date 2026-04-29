@@ -94,9 +94,8 @@ tabs = st.tabs([
     "Network",
     "Central Actors",
     "Patterns",
-    "Findings",
     "Actor Explorer",
-    "About"
+    "Findings"
 ])
 
 with tabs[0]:
@@ -125,9 +124,16 @@ with tabs[1]:
     ax_net.set_title(f'Actor Collaboration Network Sample ({subgraph_size} actors)')
     st.pyplot(fig_net)
 
-    st.subheader("Intrepretation:")
-    st.markdown(''' 
-                Will add more info here later.''')
+    st.subheader("Interpretation:")
+    st.markdown(
+        """
+        This network sample shows how actors are connected through shared movie appearances.
+        Because the full network is large, the sample view helps reveal the general structure without overcrowding the screen.
+
+        Densely connected areas suggest groups of actors who appear together directly or through short collaboration paths.
+        Isolated or loosely connected areas suggest that some actors belong to smaller collaboration groups rather than the main network.
+        """
+    )
 
 with tabs[2]:
     st.header('Central Actors')
@@ -173,10 +179,18 @@ with tabs[2]:
         st.pyplot(fig_bet_bar)
 
     st.subheader("Interpretation:")
-    st.markdown(''' 
-                Degree centrality highlights actors with many direct collaborators.
-Closeness centrality highlights actors who are structurally close to many others in the network.
-Betweenness centrality highlights actors who may act as bridges between different collaboration groups.''')
+    st.markdown(
+        """
+        Degree centrality identifies actors with many direct collaborators.
+        These actors may appear in films with many different co-stars, making them highly connected within the dataset.
+
+        Closeness centrality identifies actors who are, on average, closer to others in the network.
+        These actors may be well-positioned to reach many parts of the collaboration network through short paths.
+
+        Betweenness centrality identifies actors who help connect different parts of the network.
+        A high betweenness score suggests that an actor may act as a bridge between collaboration groups.
+        """
+    )
 
 with tabs[3]:
     st.header('Network Patterns')
@@ -209,23 +223,20 @@ with tabs[3]:
         st.pyplot(fig_comm)
 
     st.subheader("Interpretation:")
-    st.markdown(''' 
-                Will add more info here later.''')
-
-with tabs[4]:
-    st.header('Key Findings')
     st.markdown(
-        f'''
-    - The network is **sparse overall** (density = **{results['density']:.4f}**), which means only a small fraction of all possible actor collaborations occur.
-    - The network shows **strong local clustering** (average clustering coefficient = **{results['avg_clustering']:.3f}**), suggesting actors often work within repeated collaboration groups.
-    - There are **{len(results['components'])} connected components**, indicating the network is fragmented into many disconnected collaboration groups.
-    - A small set of actors stand out as highly central, including **{top_deg_df.iloc[0, 0]}**, **{top_deg_df.iloc[1, 0]}**, and **{top_deg_df.iloc[2, 0]}**.
-    - Actors such as **{top_bet_df.iloc[0, 0]}** and **{top_bet_df.iloc[1, 0]}** have high betweenness centrality, meaning they help connect otherwise separate parts of the network.
-    - The network contains **{len(results['communities'])} communities**, reinforcing that collaborations tend to form within clusters rather than across the full network.
-    '''
+        """
+        The degree distribution shows whether most actors have only a few connections while a smaller number have many.
+        This helps answer whether collaboration is evenly spread or concentrated around a few highly connected actors.
+
+        The connected component distribution shows whether the network is mostly connected or split into separate groups.
+        Many small components suggest that some actors appear in isolated collaboration circles.
+
+        The community size distribution shows how the detected actor communities vary in size.
+        Larger communities may represent broad collaboration clusters, while smaller communities may represent tighter groups of actors.
+        """
     )
 
-with tabs[5]:
+with tabs[4]:
     st.header("Actor Explorer")
 
     selected_actor = st.selectbox(
@@ -262,14 +273,47 @@ with tabs[5]:
         """
     )
 
-with tabs[6]:
-    st.header('About This Dashboard')
+with tabs[5]:
+    st.header('Key Findings')
+
+    top_degree_names = [actor for actor, score in results['top_degree'][:3]]
+    top_between_names = [actor for actor, score in results['top_between'][:3]]
+
     st.markdown(
-        '''
-    **Intended audience:** classmates and instructors interested in network analysis and collaboration structure in the film industry.
+        f"""
+        ### Main Takeaways
 
-    **Purpose:** to communicate the main structural patterns of the actor collaboration network through a small set of interpretable views.
+        **1. The actor collaboration network is sparse.**  
+        The network density is **{results['density']:.4f}**, meaning only a small fraction of all possible actor-to-actor collaborations appear in this dataset.
+        This makes sense because the IMDb Top 1000 dataset only includes selected highly rated films, not every movie in the industry.
 
-    **Main interactive feature:** users can adjust the number of actors shown in the network sample and the number of top-ranked actors shown in the centrality tables.
-    '''
+        **2. Collaboration is locally clustered.**  
+        The average clustering coefficient is **{results['avg_clustering']:.3f}**.
+        This suggests that actors often appear in groups where collaborators are also connected to one another.
+
+        **3. The network is fragmented into multiple components.**  
+        There are **{len(results['components'])} connected components**.
+        This means not every actor is connected to every other actor through collaboration paths.
+
+        **4. A small number of actors stand out as structurally central.**  
+        The top actors by degree centrality include **{top_degree_names[0]}**, **{top_degree_names[1]}**, and **{top_degree_names[2]}**.
+        These actors have many direct collaboration ties compared with others in the network.
+
+        **5. Some actors may act as bridges between groups.**  
+        The top actors by betweenness centrality include **{top_between_names[0]}**, **{top_between_names[1]}**, and **{top_between_names[2]}**.
+        These actors may help connect otherwise separate areas of the collaboration network.
+
+        **6. Community structure supports the idea of collaboration clusters.**  
+        The network contains **{len(results['communities'])} detected communities**.
+        This supports the project question about whether actors form tightly connected collaboration groups.
+        """
+    )
+
+    st.subheader("Limitations")
+    st.markdown(
+        """
+        This analysis should be interpreted carefully.
+        The dataset only includes the top four listed actors for each movie, so it does not capture every actor collaboration.
+        It also focuses on IMDb's top 1000 movies and TV shows released before or during 2021, so the network reflects a selected group of highly rated titles rather than the entire film industry.
+        """
     )
