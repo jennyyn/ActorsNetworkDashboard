@@ -154,6 +154,22 @@ except Exception as exc:
 results = build_network(df)
 G = results['G']
 
+# styling charts
+def style_dark_chart(fig, ax):
+    fig.patch.set_facecolor("#0e1117")
+    ax.set_facecolor("#0e1117")
+
+    ax.tick_params(colors="white")
+    ax.xaxis.label.set_color("white")
+    ax.yaxis.label.set_color("white")
+    ax.title.set_color("white")
+
+    for spine in ax.spines.values():
+        spine.set_color("#444")
+
+    ax.grid(True, alpha=0.2)
+
+# create tabs
 tabs = st.tabs([
     "Overview",
     "Network",
@@ -405,32 +421,40 @@ with tabs[3]:
 
 with tabs[4]:
     st.header('Network Patterns')
-    left2, right2 = st.columns(2)
+    st.caption("These charts summarize the overall structure of the actor collaboration network.")
+
+    left2, middle2, right2 = st.columns(3)
 
     with left2:
+        st.subheader("Degree Distribution")
         degrees = [deg for _, deg in G.degree()]
-        fig_hist, ax_hist = plt.subplots(figsize=(7, 4))
+        fig_hist, ax_hist = plt.subplots(figsize=(7, 3.8))
         ax_hist.hist(degrees, bins=30)
         ax_hist.set_title('Degree Distribution')
         ax_hist.set_xlabel('Degree')
         ax_hist.set_ylabel('Number of Actors')
+        style_dark_chart(fig_hist, ax_hist)
         st.pyplot(fig_hist)
 
-    with right2:
+    with middle2:
+        st.subheader("Component Sizes")
         component_sizes = sorted([len(c) for c in results['components']], reverse=True)
-        fig_comp, ax_comp = plt.subplots(figsize=(7, 4))
+        fig_comp, ax_comp = plt.subplots(figsize=(7, 3.8))
         ax_comp.hist(component_sizes, bins=20)
-        ax_comp.set_title('Connected Component Size Distribution')
+        ax_comp.set_title('Connected Component Sizes')
         ax_comp.set_xlabel('Component Size')
         ax_comp.set_ylabel('Frequency')
+        style_dark_chart(fig_comp, ax_comp)
         st.pyplot(fig_comp)
 
-        st.subheader('Community Size Distribution')
-        fig_comm, ax_comm = plt.subplots(figsize=(8, 4))
+    with right2:
+        st.subheader("Community Sizes")
+        fig_comm, ax_comm = plt.subplots(figsize=(7, 3.8))
         ax_comm.hist(results['community_sizes'], bins=20)
-        ax_comm.set_title('Community Size Distribution')
+        ax_comm.set_title('Community Sizes')
         ax_comm.set_xlabel('Community Size')
         ax_comm.set_ylabel('Frequency')
+        style_dark_chart(fig_comm, ax_comm)
         st.pyplot(fig_comm)
 
     st.subheader("Interpretation:")
