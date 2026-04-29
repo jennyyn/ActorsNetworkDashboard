@@ -7,6 +7,59 @@ from networkx.algorithms.community import greedy_modularity_communities
 
 st.set_page_config(page_title='Actor Collaboration Network Dashboard', layout='wide')
 
+st.markdown(
+    """
+    <style>
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
+    }
+
+    h1 {
+        font-size: 2.7rem !important;
+        margin-bottom: 0.5rem;
+    }
+
+    h2, h3 {
+        margin-top: 1rem;
+    }
+
+    [data-testid="stMetric"] {
+        background-color: #151922;
+        border: 1px solid #2d3340;
+        padding: 18px;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    [data-testid="stMetricLabel"] {
+        font-size: 0.9rem;
+        color: #c9d1d9;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .section-card {
+        background-color: #111620;
+        padding: 20px;
+        border-radius: 14px;
+        border: 1px solid #2d3340;
+        margin-bottom: 20px;
+    }
+
+    .small-note {
+        color: #aab2bf;
+        font-size: 0.95rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 @st.cache_resource
 def build_network(df):
     actors_df = df[['Star1', 'Star2', 'Star3', 'Star4']].dropna().copy()
@@ -63,13 +116,19 @@ def build_network(df):
     }
 
 
-st.title('Actor Collaboration Network Dashboard')
+st.title("Actor Collaboration Network Dashboard")
+
 st.markdown(
-    '''
-This dashboard explores collaboration patterns between actors in the IMDb Top 1000 dataset.
-Each **node** represents an actor, and each **edge** represents a shared movie appearance.
-The network is **undirected** and **weighted** by the number of times two actors appear together.
-'''
+    """
+    <div class="section-card">
+        <p class="small-note">
+        This dashboard explores collaboration patterns between actors in the IMDb Top 1000 dataset.
+        Each <b>node</b> represents an actor, each <b>edge</b> represents a shared movie appearance,
+        and edge weight represents repeated collaborations.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
 st.sidebar.header('Dashboard Controls')
@@ -99,23 +158,45 @@ tabs = st.tabs([
     "Overview",
     "Network",
     "Central Actors",
-    "Patterns",
     "Actor Explorer",
+    "Patterns",
     "Findings"
 ])
 
 with tabs[0]:
-    st.header('Overview')
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric('Actors (nodes)', G.number_of_nodes())
-    col2.metric('Collaborations (edges)', G.number_of_edges())
-    col3.metric('Density', f"{results['density']:.4f}")
-    col4.metric('Avg. clustering', f"{results['avg_clustering']:.3f}")
+    st.header("Overview")
 
-    col5, col6, col7 = st.columns(3)
-    col5.metric('Avg. degree', f"{results['avg_degree']:.2f}")
-    col6.metric('Connected components', len(results['components']))
-    col7.metric('Communities', len(results['communities']))
+    st.markdown("### Research Questions")
+    st.markdown(
+        """
+        1. Who are the most central actors in the collaboration network?  
+        2. Are there tightly connected clusters of actors who frequently collaborate?  
+        3. What structural patterns appear in the actor collaboration network?
+        """
+    )
+
+    st.markdown("### Network Summary")
+
+    row1 = st.columns(3)
+    row1[0].metric("Actors", G.number_of_nodes())
+    row1[1].metric("Collaborations", G.number_of_edges())
+    row1[2].metric("Density", f"{results['density']:.4f}")
+
+    row2 = st.columns(3)
+    row2[0].metric("Average Degree", f"{results['avg_degree']:.2f}")
+    row2[1].metric("Avg. Clustering", f"{results['avg_clustering']:.3f}")
+    row2[2].metric("Connected Components", len(results['components']))
+
+    st.markdown(
+        """
+        <div class="section-card">
+            <b>Quick interpretation:</b>
+            This network is sparse overall, meaning only a small portion of all possible actor collaborations appear.
+            However, the clustering score suggests that actors often form local collaboration groups.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 with tabs[1]:
@@ -227,7 +308,7 @@ with tabs[2]:
         st.subheader('Top Actors by Degree Centrality')
         top_deg_df = pd.DataFrame(results['top_degree'][:top_n], columns=['Actor', 'Degree Centrality'])
         top_deg_df['Degree Centrality'] = top_deg_df['Degree Centrality'].round(5)
-        st.dataframe(top_deg_df, use_container_width=True)
+        st.dataframe(top_deg_df, use_container_width=True, hide_index=True)
 
         fig_deg_bar, ax_deg_bar = plt.subplots(figsize=(7, 4))
         ax_deg_bar.barh(top_deg_df['Actor'], top_deg_df['Degree Centrality'])
@@ -240,7 +321,7 @@ with tabs[2]:
         st.subheader('Top Actors by Closeness Centrality')
         top_close_df = pd.DataFrame(results['top_close'][:top_n], columns=['Actor', 'Closeness Centrality'])
         top_close_df['Closeness Centrality'] = top_close_df['Closeness Centrality'].round(5)
-        st.dataframe(top_close_df, use_container_width=True)
+        st.dataframe(top_close_df, use_container_width=True, hide_index=True)
 
         fig_close_bar, ax_close_bar = plt.subplots(figsize=(7, 4))
         ax_close_bar.barh(top_close_df['Actor'], top_close_df['Closeness Centrality'])
@@ -253,7 +334,7 @@ with tabs[2]:
         st.subheader('Top Actors by Betweenness Centrality')
         top_bet_df = pd.DataFrame(results['top_between'][:top_n], columns=['Actor', 'Betweenness Centrality'])
         top_bet_df['Betweenness Centrality'] = top_bet_df['Betweenness Centrality'].round(5)
-        st.dataframe(top_bet_df, use_container_width=True)
+        st.dataframe(top_bet_df, use_container_width=True, hide_index=True)
 
         fig_bet_bar, ax_bet_bar = plt.subplots(figsize=(7, 4))
         ax_bet_bar.barh(top_bet_df['Actor'], top_bet_df['Betweenness Centrality'])
@@ -277,6 +358,52 @@ with tabs[2]:
     )
 
 with tabs[3]:
+    st.header("Actor Explorer")
+
+    # start with the most connected actor
+    actor_options = [
+        actor for actor, degree in sorted(
+            G.degree(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+    ]
+
+    selected_actor = st.selectbox(
+        "Choose an actor to inspect",
+        actor_options
+    )
+
+    neighbors = sorted(list(G.neighbors(selected_actor)))
+    weighted_neighbors = []
+
+    for neighbor in neighbors:
+        weight = G[selected_actor][neighbor]["weight"]
+        weighted_neighbors.append((neighbor, weight))
+
+    neighbor_df = pd.DataFrame(
+        weighted_neighbors,
+        columns=["Collaborator", "Shared Movies"]
+    ).sort_values("Shared Movies", ascending=False)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Actor", selected_actor)
+    col2.metric("Direct Collaborators", len(neighbors))
+    col3.metric("Total Shared-Movie Ties", sum(neighbor_df["Shared Movies"]))
+
+    st.subheader(f"Collaborators of {selected_actor}")
+    st.dataframe(neighbor_df, use_container_width=True, hide_index=True)
+
+    st.subheader("Interpretation:")
+    st.markdown(
+        """
+        This tab supports local exploration. Instead of only seeing global rankings,
+        users can inspect one actor and see who they are directly connected to.
+        The shared-movie count uses the edge weight from the network.
+        """
+    )
+
+with tabs[4]:
     st.header('Network Patterns')
     left2, right2 = st.columns(2)
 
@@ -317,43 +444,6 @@ with tabs[3]:
 
         The community size distribution shows how the detected actor communities vary in size.
         Larger communities may represent broad collaboration clusters, while smaller communities may represent tighter groups of actors.
-        """
-    )
-
-with tabs[4]:
-    st.header("Actor Explorer")
-
-    selected_actor = st.selectbox(
-        "Choose an actor to inspect",
-        sorted(G.nodes())
-    )
-
-    neighbors = sorted(list(G.neighbors(selected_actor)))
-    weighted_neighbors = []
-
-    for neighbor in neighbors:
-        weight = G[selected_actor][neighbor]["weight"]
-        weighted_neighbors.append((neighbor, weight))
-
-    neighbor_df = pd.DataFrame(
-        weighted_neighbors,
-        columns=["Collaborator", "Shared Movies"]
-    ).sort_values("Shared Movies", ascending=False)
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Actor", selected_actor)
-    col2.metric("Direct Collaborators", len(neighbors))
-    col3.metric("Total Shared-Movie Ties", sum(neighbor_df["Shared Movies"]))
-
-    st.subheader(f"Collaborators of {selected_actor}")
-    st.dataframe(neighbor_df, use_container_width=True)
-
-    st.subheader("Interpretation:")
-    st.markdown(
-        """
-        This tab supports local exploration. Instead of only seeing global rankings,
-        users can inspect one actor and see who they are directly connected to.
-        The shared-movie count uses the edge weight from the network.
         """
     )
 
