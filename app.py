@@ -113,8 +113,9 @@ with tabs[0]:
     col6.metric('Connected components', len(results['components']))
     col7.metric('Communities', len(results['communities']))
 
+
 with tabs[1]:
-    st.header('2. Network Visualization')
+    st.header('Network Visualization')
     st.caption('This sample view helps users explore the structure of actor collaborations without overwhelming the screen.')
 
     sub_nodes = list(G.nodes())[:subgraph_size]
@@ -125,8 +126,12 @@ with tabs[1]:
     ax_net.set_title(f'Actor Collaboration Network Sample ({subgraph_size} actors)')
     st.pyplot(fig_net)
 
+    st.subheader("Intrepretation:")
+    st.markdown(''' 
+                Will add more info here later.''')
+
 with tabs[2]:
-    st.header('3. Central Actors')
+    st.header('Central Actors')
     left, right = st.columns(2)
 
     with left:
@@ -155,8 +160,12 @@ with tabs[2]:
         ax_bet_bar.set_xlabel('Betweenness Centrality')
         st.pyplot(fig_bet_bar)
 
+    st.subheader("Intrepretation:")
+    st.markdown(''' 
+                Will add more info here later.''')
+
 with tabs[3]:
-    st.header('4. Network Patterns')
+    st.header('Network Patterns')
     left2, right2 = st.columns(2)
 
     with left2:
@@ -185,8 +194,12 @@ with tabs[3]:
         ax_comm.set_ylabel('Frequency')
         st.pyplot(fig_comm)
 
+    st.subheader("Intrepretation:")
+    st.markdown(''' 
+                Will add more info here later.''')
+
 with tabs[4]:
-    st.header('5. Key Findings')
+    st.header('Key Findings')
     st.markdown(
         f'''
     - The network is **sparse overall** (density = **{results['density']:.4f}**), which means only a small fraction of all possible actor collaborations occur.
@@ -199,7 +212,7 @@ with tabs[4]:
     )
 
 with tabs[5]:
-    st.header('6. About This Dashboard')
+    st.header('About This Dashboard')
     st.markdown(
         '''
     **Intended audience:** classmates and instructors interested in network analysis and collaboration structure in the film industry.
