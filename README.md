@@ -1,4 +1,4 @@
-## How to Run Locally
+# How to Run Locally
 
 To run this project on your local machine, follow the steps below.
 
