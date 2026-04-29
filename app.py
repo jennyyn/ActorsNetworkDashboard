@@ -95,6 +95,7 @@ tabs = st.tabs([
     "Central Actors",
     "Patterns",
     "Findings",
+    "Actor Explorer",
     "About"
 ])
 
@@ -225,6 +226,43 @@ with tabs[4]:
     )
 
 with tabs[5]:
+    st.header("Actor Explorer")
+
+    selected_actor = st.selectbox(
+        "Choose an actor to inspect",
+        sorted(G.nodes())
+    )
+
+    neighbors = sorted(list(G.neighbors(selected_actor)))
+    weighted_neighbors = []
+
+    for neighbor in neighbors:
+        weight = G[selected_actor][neighbor]["weight"]
+        weighted_neighbors.append((neighbor, weight))
+
+    neighbor_df = pd.DataFrame(
+        weighted_neighbors,
+        columns=["Collaborator", "Shared Movies"]
+    ).sort_values("Shared Movies", ascending=False)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Actor", selected_actor)
+    col2.metric("Direct Collaborators", len(neighbors))
+    col3.metric("Total Shared-Movie Ties", sum(neighbor_df["Shared Movies"]))
+
+    st.subheader(f"Collaborators of {selected_actor}")
+    st.dataframe(neighbor_df, use_container_width=True)
+
+    st.subheader("Interpretation:")
+    st.markdown(
+        """
+        This tab supports local exploration. Instead of only seeing global rankings,
+        users can inspect one actor and see who they are directly connected to.
+        The shared-movie count uses the edge weight from the network.
+        """
+    )
+
+with tabs[6]:
     st.header('About This Dashboard')
     st.markdown(
         '''
