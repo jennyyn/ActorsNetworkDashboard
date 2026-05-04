@@ -305,7 +305,7 @@ with tabs[1]:
         "Thicker edges represent repeated shared movie appearances."
     )
 
-    st.subheader("Interpretation:")
+    st.subheader("Interpretations:")
     st.markdown(
         """
         This graph displays a focused sample of the most connected actors in the collaboration network.
@@ -359,17 +359,40 @@ with tabs[2]:
         ax_bet_bar.set_xlabel('Betweenness Centrality')
         st.pyplot(fig_bet_bar)
 
-    st.subheader("Interpretation:")
+    st.subheader("Interpretations:")
     st.markdown(
         """
-        Degree centrality identifies actors with many direct collaborators.
+        **Degree Centrality**
+
+        Degree centrality identifies actors with many direct collaborators. 
         These actors may appear in films with many different co-stars, making them highly connected within the dataset.
+
+        ---
+
+        **Closeness Centrality**
 
         Closeness centrality identifies actors who are, on average, closer to others in the network.
         These actors may be well-positioned to reach many parts of the collaboration network through short paths.
 
+        ---
+
+        **Betweeness Centrality**
+
         Betweenness centrality identifies actors who help connect different parts of the network.
         A high betweenness score suggests that an actor may act as a bridge between collaboration groups.
+        
+        ---
+
+        **Notable Actors**
+
+        Robert De Niro consistently emerges as one of the most structurally central figures in the network. His high degree and closeness centrality suggest a career characterized by 
+        extensive collaboration across many different actors, positioning him as a highly connected and easily reachable node within the broader network. In the context of the dataset, 
+        this reflects a role defined more by widespread participation across the industry rather than repeated partnerships within a narrow group. 
+
+        Dev Patel plays a different but equally important role within the network structure. While not as globally connected as the most central actors by degree or closeness, his high 
+        betweenness centrality highlights a bridging function between otherwise separate clusters of actors. This suggests that certain actors in the network are not defined by the number 
+        of their connections, but by their ability to link distinct collaboration groups. In this sense, Dev Patel represents the role of a connector, facilitating interaction between parts 
+        of the network that may otherwise remain loosely connected.
         """
     )
 
@@ -410,7 +433,7 @@ with tabs[3]:
     st.subheader(f"Collaborators of {selected_actor}")
     st.dataframe(neighbor_df, use_container_width=True, hide_index=True)
 
-    st.subheader("Interpretation:")
+    st.subheader("Interpretations:")
     st.markdown(
         """
         This tab supports local exploration. Instead of only seeing global rankings,
@@ -457,7 +480,7 @@ with tabs[4]:
         style_dark_chart(fig_comm, ax_comm)
         st.pyplot(fig_comm)
 
-    st.subheader("Interpretation:")
+    st.subheader("Interpretations:")
     st.markdown(
         """
         The degree distribution shows whether most actors have only a few connections while a smaller number have many.
