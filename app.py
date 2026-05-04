@@ -175,6 +175,7 @@ tabs = st.tabs([
     "Network",
     "Central Actors",
     "Actor Explorer",
+    "Community Detection",
     "Patterns",
     "Findings"
 ])
@@ -443,6 +444,64 @@ with tabs[3]:
     )
 
 with tabs[4]:
+    st.header("Community Detection")
+
+    st.markdown(
+        """
+        Community detection identifies groups of actors who are more densely connected to each other
+        than to the rest of the network. These communities often represent recurring collaboration groups,
+        such as shared film casts, franchises, or genre-based clusters.
+        """
+    )
+
+    st.subheader("Community Overview")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric("Number of Communities", len(results["communities"]))
+        st.metric("Largest Community Size", max(results["community_sizes"]))
+
+    with col2:
+        fig_comm, ax_comm = plt.subplots(figsize=(6, 4))
+        ax_comm.hist(results["community_sizes"], bins=20)
+        ax_comm.set_title("Community Size Distribution")
+        ax_comm.set_xlabel("Community Size")
+        ax_comm.set_ylabel("Number of Communities")
+        style_dark_chart(fig_comm, ax_comm)
+        st.pyplot(fig_comm)
+
+    st.subheader("Largest Communities")
+
+    # Show top 5 largest communities
+    sorted_communities = sorted(results["communities"], key=len, reverse=True)
+
+    for i, community in enumerate(sorted_communities[:5]):
+        st.markdown(f"**Community {i+1} (Size: {len(community)})**")
+
+        sample_members = list(community)[:10]  # avoid huge lists
+        st.write(", ".join(sample_members))
+        st.caption("Showing top 10 members only")
+
+        st.markdown("---")
+
+    st.subheader("Interpretation")
+
+    st.markdown(
+        """
+        The community structure suggests that the actor network is not random, but instead organized into
+        distinct collaboration groups. These groups likely represent recurring cast ensembles, film franchises,
+        or actors who frequently work within similar production circles.
+
+        Larger communities indicate broad collaboration clusters with many interconnected actors, while smaller
+        communities may represent more specialized or tightly focused collaboration groups.
+
+        When compared with centrality measures, these results suggest that highly central actors often span across
+        multiple communities, while other actors tend to remain embedded within a single collaboration group.
+        """
+    )
+
+with tabs[5]:
     st.header('Network Patterns')
     st.caption("These charts summarize the overall structure of the actor collaboration network.")
 
@@ -494,7 +553,7 @@ with tabs[4]:
         """
     )
 
-with tabs[5]:
+with tabs[6]:
     st.header('Key Findings')
 
     top_degree_names = [actor for actor, score in results['top_degree'][:3]]
