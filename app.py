@@ -97,6 +97,12 @@ def build_network(df):
     largest_cc = max(components, key=len)
     G_cc = G.subgraph(largest_cc).copy()
 
+    cross_edges = []
+
+    for u, v, data in G.edges(data=True):
+        if community_map.get(u) != community_map.get(v):
+            cross_edges.append((u, v, data.get("weight", 1)))
+
     return {
         'G': G,
         'density': density,
@@ -113,6 +119,7 @@ def build_network(df):
         'community_sizes': community_sizes,
         'community_map': community_map,
         'G_cc': G_cc,
+        'cross_edges': cross_edges
     }
 
 
@@ -484,6 +491,28 @@ with tabs[4]:
         st.caption("Showing top 10 members only")
 
         st.markdown("---")
+
+    st.subheader("Cross-Community Collaborations")
+    cross_edges = results["cross_edges"]
+
+    cross_df = pd.DataFrame(
+        cross_edges,
+        columns=["Actor 1", "Actor 2", "Weight"]
+    )
+
+    st.dataframe(cross_df.sort_values("Weight", ascending=False).head(20))
+
+    st.markdown(
+        """
+        **Cross-Community Collaborations**
+
+        Cross-community edges represent collaborations between actors who belong to different detected communities. These connections provide insight into how separated or interconnected the overall network structure is.
+
+        The presence of cross-community collaborations suggests that the actor network is not completely segmented into isolated groups. Instead, there are actors who contribute to linking different clusters together, allowing information and collaborations to flow across community boundaries.
+
+        Actors involved in many cross-community edges may play an important structural role in maintaining connectivity across the network, complementing the role of high betweenness centrality nodes that act as bridges between groups.
+        """
+        )
 
     st.subheader("Interpretation")
 
