@@ -444,9 +444,11 @@ with tabs[3]:
     st.subheader("Interpretations:")
     st.markdown(
         """
-        This tab supports local exploration. Instead of only seeing global rankings,
-        users can inspect one actor and see who they are directly connected to.
-        The shared-movie count uses the edge weight from the network.
+        The Actor Explorer provides a local perspective on the network by allowing individual actors to be examined in detail. While global metrics such as centrality identify important actors, this view helps explain *why* those actors are significant by showing their direct collaborations.
+
+        By examining the number of collaborators and the strength of each connection, users can distinguish between actors who rely on many weak ties versus those with repeated collaborations. This supports a deeper understanding of how central positions in the network are formed.
+
+        Additionally, exploring individual actors can reveal whether they are embedded within tightly connected groups or connected to a diverse set of collaborators, offering insight into both clustering behavior and potential bridging roles within the network.
         """
     )
 
