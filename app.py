@@ -500,7 +500,7 @@ with tabs[4]:
         columns=["Actor 1", "Actor 2", "Weight"]
     )
 
-    st.dataframe(cross_df.sort_values("Weight", ascending=False).head(20))
+    st.dataframe(cross_df.sort_values("Weight", ascending=False).head(20), use_container_width=True, hide_index=True)
 
     st.markdown(
         """
@@ -583,46 +583,101 @@ with tabs[5]:
     )
 
 with tabs[6]:
-    st.header('Key Findings')
+    st.header("Key Findings")
 
-    top_degree_names = [actor for actor, score in results['top_degree'][:3]]
-    top_between_names = [actor for actor, score in results['top_between'][:3]]
+    top_degree_names = [actor for actor, score in results["top_degree"][:3]]
+    top_between_names = [actor for actor, score in results["top_between"][:3]]
 
+    findings = [
+        {
+            "title": "Sparse Network",
+            "metric": f"{results['density']:.4f}",
+            "label": "Network density",
+            "text": "Only a small fraction of possible actor-to-actor collaborations appear in this dataset."
+        },
+        {
+            "title": "Locally Clustered",
+            "metric": f"{results['avg_clustering']:.3f}",
+            "label": "Avg. clustering coefficient",
+            "text": "Actors often appear in groups where their collaborators are also connected to one another."
+        },
+        {
+            "title": "Fragmented Structure",
+            "metric": f"{len(results['components'])}",
+            "label": "Connected components",
+            "text": "Not every actor can be reached from every other actor through collaboration paths."
+        },
+        {
+            "title": "Central Actors",
+            "metric": ", ".join(top_degree_names),
+            "label": "Top degree centrality",
+            "text": "These actors have many direct collaboration ties compared with others in the network."
+        },
+        {
+            "title": "Bridge Actors",
+            "metric": ", ".join(top_between_names),
+            "label": "Top betweenness centrality",
+            "text": "These actors may connect otherwise separate areas of the collaboration network."
+        },
+        {
+            "title": "Collaboration Communities",
+            "metric": f"{len(results['communities'])}",
+            "label": "Detected communities",
+            "text": "The network contains many groups of actors who are more densely connected to one another."
+        },
+    ]
+
+    st.subheader("Main Takeaways")
+
+    for i in range(0, len(findings), 3):
+        cols = st.columns(3)
+        for col, item in zip(cols, findings[i:i+3]):
+            with col:
+                st.markdown(
+                    f"""
+                    <div style="
+                        border: 1px solid #303846;
+                        border-radius: 12px;
+                        padding: 18px;
+                        min-height: 190px;
+                        background-color: #111722;
+                    ">
+                        <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 10px;">
+                            {item['title']}
+                        </div>
+                        <div style="font-size: 1.6rem; font-weight: 800; margin-bottom: 4px;">
+                            {item['metric']}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #b8beca; margin-bottom: 12px;">
+                            {item['label']}
+                        </div>
+                        <div style="font-size: 0.9rem; line-height: 1.45;">
+                            {item['text']}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+    st.subheader("Overall Interpretation")
     st.markdown(
-        f"""
-        ### Main Takeaways
-
-        **1. The actor collaboration network is sparse.**  
-        The network density is **{results['density']:.4f}**, meaning only a small fraction of all possible actor-to-actor collaborations appear in this dataset.
-        This makes sense because the IMDb Top 1000 dataset only includes selected highly rated films, not every movie in the industry.
-
-        **2. Collaboration is locally clustered.**  
-        The average clustering coefficient is **{results['avg_clustering']:.3f}**.
-        This suggests that actors often appear in groups where collaborators are also connected to one another.
-
-        **3. The network is fragmented into multiple components.**  
-        There are **{len(results['components'])} connected components**.
-        This means not every actor is connected to every other actor through collaboration paths.
-
-        **4. A small number of actors stand out as structurally central.**  
-        The top actors by degree centrality include **{top_degree_names[0]}**, **{top_degree_names[1]}**, and **{top_degree_names[2]}**.
-        These actors have many direct collaboration ties compared with others in the network.
-
-        **5. Some actors may act as bridges between groups.**  
-        The top actors by betweenness centrality include **{top_between_names[0]}**, **{top_between_names[1]}**, and **{top_between_names[2]}**.
-        These actors may help connect otherwise separate areas of the collaboration network.
-
-        **6. Community structure supports the idea of collaboration clusters.**  
-        The network contains **{len(results['communities'])} detected communities**.
-        This supports the project question about whether actors form tightly connected collaboration groups.
         """
+        The actor collaboration network is **sparse but highly clustered**. 
+        This suggests that while most actors are connected to only a small portion of all possible collaborators, 
+        many collaborations happen within recognizable local groups.
+
+        The centrality results show that some actors, such as **{}**, occupy broad, highly connected positions, 
+        while actors such as **{}** may play more of a bridging role between different collaboration groups.
+        """.format(top_degree_names[0], top_between_names[0])
     )
 
-    st.subheader("Limitations")
+    st.subheader("Limitations and Ethical Considerations")
     st.markdown(
         """
-        This analysis should be interpreted carefully.
-        The dataset only includes the top four listed actors for each movie, so it does not capture every actor collaboration.
-        It also focuses on IMDb's top 1000 movies and TV shows released before or during 2021, so the network reflects a selected group of highly rated titles rather than the entire film industry.
+        - The dataset only includes the top four listed actors for each title, so many supporting actors and smaller roles are excluded.
+        - IMDb's Top 1000 reflects a selected set of highly rated movies and TV shows, not the entire film industry.
+        - The dataset may reflect historical industry biases related to language, country, gender, race, and access to major film productions.
+        - Centrality should not be interpreted as artistic importance or career value; it only describes position within this specific dataset.
+        - The dashboard uses a dark theme, so labels, captions, and contrast should be checked for readability and accessibility.
         """
     )
