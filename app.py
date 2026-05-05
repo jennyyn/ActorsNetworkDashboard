@@ -680,6 +680,5 @@ with tabs[6]:
         - IMDb's Top 1000 reflects a selected set of highly rated movies and TV shows, not the entire film industry.
         - The dataset may reflect historical industry biases related to language, country, gender, race, and access to major film productions.
         - Centrality should not be interpreted as artistic importance or career value; it only describes position within this specific dataset.
-        - The dashboard uses a dark theme, so labels, captions, and contrast should be checked for readability and accessibility.
         """
     )
