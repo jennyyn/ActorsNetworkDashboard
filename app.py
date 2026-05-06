@@ -521,9 +521,6 @@ with tabs[4]:
         Community detection identifies groups of actors who are more densely connected to each other
         than to the rest of the network. These communities often represent recurring collaboration groups,
         such as shared film casts, franchises, or genre-based clusters.
-
-        This section now adds genre analysis by summarizing the dominant and most common genres associated
-        with each detected community.
         """
     )
 
@@ -615,7 +612,7 @@ with tabs[4]:
     for rank, (community_id, community) in enumerate(sorted_communities[:5], start=1):
         genre_row = community_genre_df[community_genre_df["Community"] == community_id].iloc[0]
         st.markdown(
-            f"**Community {community_id} | Rank {rank} | Size: {len(community)} | "
+            f"**Community {community_id} | Size: {len(community)} | "
             f"Dominant genre: {genre_row['Dominant Genre']}**"
         )
 
