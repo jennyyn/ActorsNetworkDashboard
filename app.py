@@ -64,14 +64,22 @@ st.markdown(
 def build_network(df):
     actors_df = df[['Star1', 'Star2', 'Star3', 'Star4']].dropna().copy()
     G = nx.Graph()
+    for _, row in df.iterrows():
+        actors = [row['Star1'], row['Star2'], row['Star3'], row['Star4']]
+        actors = [a for a in actors if pd.notna(a)]
 
-    for _, row in actors_df.iterrows():
-        actors = row.tolist()
+        genres = row['Genre'].split(", ")  # split into list
+
         for pair in combinations(actors, 2):
             if G.has_edge(*pair):
                 G[pair[0]][pair[1]]['weight'] += 1
+                G[pair[0]][pair[1]]['genres'].extend(genres)
             else:
-                G.add_edge(pair[0], pair[1], weight=1)
+                G.add_edge(
+                    pair[0], pair[1],
+                    weight=1,
+                    genres=genres.copy()
+                )
 
     density = nx.density(G)
     avg_degree = sum(dict(G.degree()).values()) / G.number_of_nodes()
@@ -425,12 +433,19 @@ with tabs[3]:
     weighted_neighbors = []
 
     for neighbor in neighbors:
-        weight = G[selected_actor][neighbor]["weight"]
-        weighted_neighbors.append((neighbor, weight))
+        edge_data = G[selected_actor][neighbor]
+
+        genres = list(set(edge_data["genres"]))  # remove duplicates
+
+        weighted_neighbors.append((
+            neighbor,
+            edge_data["weight"], 
+            ", ".join(genres)
+        ))
 
     neighbor_df = pd.DataFrame(
         weighted_neighbors,
-        columns=["Collaborator", "Shared Movies"]
+        columns=["Collaborator", "Shared Movies", "Genres"]
     ).sort_values("Shared Movies", ascending=False)
 
     col1, col2, col3 = st.columns(3)
