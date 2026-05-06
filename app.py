@@ -4,6 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from itertools import combinations
 from networkx.algorithms.community import greedy_modularity_communities
+import plotly.express as px
 
 st.set_page_config(page_title='Actor Collaboration Network Dashboard', layout='wide')
 
@@ -487,13 +488,23 @@ with tabs[4]:
         st.metric("Largest Community Size", max(results["community_sizes"]))
 
     with col2:
-        fig_comm, ax_comm = plt.subplots(figsize=(6, 4))
-        ax_comm.hist(results["community_sizes"], bins=20)
-        ax_comm.set_title("Community Size Distribution")
-        ax_comm.set_xlabel("Community Size")
-        ax_comm.set_ylabel("Number of Communities")
-        style_dark_chart(fig_comm, ax_comm)
-        st.pyplot(fig_comm)
+        fig_comm = px.histogram(
+            x=results["community_sizes"],
+            nbins=20,
+            labels={"x": "Community Size", "y": "Frequency"},
+            title="Community Size Distribution"
+        )
+
+        fig_comm.update_traces(
+        hovertemplate="Community Size: %{x}<br>Number of Communities: %{y}"
+        )
+        
+        fig_comm.update_layout(
+            template="plotly_dark",
+            bargap=0.1
+        )
+
+        st.plotly_chart(fig_comm, use_container_width=True)
 
     st.subheader("Largest Communities")
 
