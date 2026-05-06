@@ -3,6 +3,7 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from itertools import combinations
+from collections import Counter
 from networkx.algorithms.community import greedy_modularity_communities
 import plotly.express as px
 
@@ -63,13 +64,22 @@ st.markdown(
 
 @st.cache_resource
 def build_network(df):
-    actors_df = df[['Star1', 'Star2', 'Star3', 'Star4']].dropna().copy()
     G = nx.Graph()
+
     for _, row in df.iterrows():
         actors = [row['Star1'], row['Star2'], row['Star3'], row['Star4']]
         actors = [a for a in actors if pd.notna(a)]
 
-        genres = row['Genre'].split(", ")  # split into list
+        # Safely parse IMDb genre strings such as "Action, Drama, Sci-Fi".
+        if pd.notna(row.get('Genre')):
+            genres = [genre.strip() for genre in str(row['Genre']).split(',') if genre.strip()]
+        else:
+            genres = []
+
+        for actor in actors:
+            if not G.has_node(actor):
+                G.add_node(actor, genres=[])
+            G.nodes[actor]['genres'].extend(genres)
 
         for pair in combinations(actors, 2):
             if G.has_edge(*pair):
@@ -112,6 +122,39 @@ def build_network(df):
         if community_map.get(u) != community_map.get(v):
             cross_edges.append((u, v, data.get("weight", 1)))
 
+    community_genre_rows = []
+
+    for i, community in enumerate(communities):
+        genre_counter = Counter()
+        internal_edge_count = 0
+        internal_collaboration_weight = 0
+
+        for actor in community:
+            genre_counter.update(G.nodes[actor].get('genres', []))
+
+        for u, v, data in G.subgraph(community).edges(data=True):
+            internal_edge_count += 1
+            internal_collaboration_weight += data.get('weight', 1)
+
+        total_genre_mentions = sum(genre_counter.values())
+        top_genres = genre_counter.most_common(5)
+
+        community_genre_rows.append({
+            'Community': i,
+            'Size': len(community),
+            'Internal Collaborations': internal_edge_count,
+            'Weighted Internal Collaborations': internal_collaboration_weight,
+            'Unique Genres': len(genre_counter),
+            'Dominant Genre': top_genres[0][0] if top_genres else 'Unknown',
+            'Dominant Genre Share': (top_genres[0][1] / total_genre_mentions) if total_genre_mentions else 0,
+            'Top Genres': ', '.join([f'{genre} ({count})' for genre, count in top_genres]) if top_genres else 'Unknown'
+        })
+
+    community_genre_df = pd.DataFrame(community_genre_rows).sort_values(
+        ['Size', 'Weighted Internal Collaborations'],
+        ascending=False
+    )
+
     return {
         'G': G,
         'density': density,
@@ -128,7 +171,8 @@ def build_network(df):
         'community_sizes': community_sizes,
         'community_map': community_map,
         'G_cc': G_cc,
-        'cross_edges': cross_edges
+        'cross_edges': cross_edges,
+        'community_genre_df': community_genre_df
     }
 
 
@@ -158,7 +202,7 @@ def load_data():
 
 try:
     df = load_data()
-    required_cols = {'Star1', 'Star2', 'Star3', 'Star4'}
+    required_cols = {'Star1', 'Star2', 'Star3', 'Star4', 'Genre'}
     missing_cols = required_cols - set(df.columns)
     if missing_cols:
         st.error(f'Missing required columns: {sorted(missing_cols)}')
@@ -204,7 +248,8 @@ with tabs[0]:
         """
         1. Who are the most central actors in the collaboration network?  
         2. Are there tightly connected clusters of actors who frequently collaborate?  
-        3. What structural patterns appear in the actor collaboration network?
+        3. What structural patterns appear in the actor collaboration network?  
+        4. Do detected actor communities align with particular movie genres?
         """
     )
 
@@ -476,6 +521,9 @@ with tabs[4]:
         Community detection identifies groups of actors who are more densely connected to each other
         than to the rest of the network. These communities often represent recurring collaboration groups,
         such as shared film casts, franchises, or genre-based clusters.
+
+        This section now adds genre analysis by summarizing the dominant and most common genres associated
+        with each detected community.
         """
     )
 
@@ -506,17 +554,74 @@ with tabs[4]:
 
         st.plotly_chart(fig_comm, use_container_width=True)
 
+    st.subheader("Community Genre Analysis")
+
+    community_genre_df = results["community_genre_df"].copy()
+    display_genre_df = community_genre_df.copy()
+    display_genre_df["Dominant Genre Share"] = (
+        display_genre_df["Dominant Genre Share"] * 100
+    ).round(1).astype(str) + "%"
+
+    st.dataframe(
+        display_genre_df.head(15),
+        use_container_width=True,
+        hide_index=True
+    )
+
+    top_communities_for_chart = community_genre_df.head(10).copy()
+    top_communities_for_chart["Community Label"] = (
+        "Community " + top_communities_for_chart["Community"].astype(str)
+    )
+
+    fig_genre = px.bar(
+        top_communities_for_chart,
+        x="Community Label",
+        y="Size",
+        color="Dominant Genre",
+        hover_data=[
+            "Top Genres",
+            "Unique Genres",
+            "Weighted Internal Collaborations"
+        ],
+        title="Largest Communities by Dominant Genre"
+    )
+
+    fig_genre.update_layout(
+        template="plotly_dark",
+        xaxis_title="Detected Community",
+        yaxis_title="Number of Actors"
+    )
+
+    st.plotly_chart(fig_genre, use_container_width=True)
+
+    st.markdown(
+        """
+        **Genre interpretation:**
+        This table connects network communities to the movie genres associated with their actors.
+        A high dominant-genre share suggests that a community is strongly associated with one genre,
+        while a larger number of unique genres suggests a more mixed or cross-genre collaboration group.
+        """
+    )
+
     st.subheader("Largest Communities")
 
-    # Show top 5 largest communities
-    sorted_communities = sorted(results["communities"], key=len, reverse=True)
+    # Show top 5 largest communities, matched with their genre profiles.
+    sorted_communities = sorted(
+        enumerate(results["communities"]),
+        key=lambda item: len(item[1]),
+        reverse=True
+    )
 
-    for i, community in enumerate(sorted_communities[:5]):
-        st.markdown(f"**Community {i+1} (Size: {len(community)})**")
+    for rank, (community_id, community) in enumerate(sorted_communities[:5], start=1):
+        genre_row = community_genre_df[community_genre_df["Community"] == community_id].iloc[0]
+        st.markdown(
+            f"**Community {community_id} | Rank {rank} | Size: {len(community)} | "
+            f"Dominant genre: {genre_row['Dominant Genre']}**"
+        )
 
         sample_members = list(community)[:10]  # avoid huge lists
         st.write(", ".join(sample_members))
-        st.caption("Showing top 10 members only")
+        st.caption(f"Top genres: {genre_row['Top Genres']}")
 
         st.markdown("---")
 
@@ -555,6 +660,10 @@ with tabs[4]:
 
         When compared with centrality measures, these results suggest that highly central actors often span across
         multiple communities, while other actors tend to remain embedded within a single collaboration group.
+
+        The genre analysis adds another layer: some communities may be genre-focused, while others combine actors
+        from several genres. This helps distinguish communities that are mainly structural from communities that also
+        reflect genre-based collaboration patterns.
         """
     )
 
