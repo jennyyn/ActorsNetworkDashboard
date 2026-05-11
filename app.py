@@ -452,9 +452,8 @@ with tabs[2]:
         this reflects a role defined more by widespread participation across the industry rather than repeated partnerships within a narrow group. 
 
         Dev Patel plays a different but equally important role within the network structure. While not as globally connected as the most central actors by degree or closeness, his high 
-        betweenness centrality highlights a bridging function between otherwise separate clusters of actors. This suggests that certain actors in the network are not defined by the number 
-        of their connections, but by their ability to link distinct collaboration groups. In this sense, Dev Patel represents the role of a connector, facilitating interaction between parts 
-        of the network that may otherwise remain loosely connected.
+        betweenness centrality highlights a bridging function between otherwise separate clusters of actors. Rather than being defined by the total number of connections, his role is 
+        characterized by linking distinct collaboration groups that would otherwise remain loosely connected.
         """
     )
 
@@ -502,7 +501,7 @@ with tabs[3]:
     st.subheader(f"Collaborators of {selected_actor}")
     st.dataframe(neighbor_df, use_container_width=True, hide_index=True)
 
-    st.subheader("Interpretations:")
+    st.subheader("Understanding Actor Relationships:")
     st.markdown(
         """
         The Actor Explorer provides a local perspective on the network by allowing individual actors to be examined in detail. While global metrics such as centrality identify important actors, this view helps explain *why* those actors are significant by showing their direct collaborations.
@@ -565,7 +564,7 @@ with tabs[4]:
         hide_index=True
     )
 
-    top_communities_for_chart = community_genre_df.head(10).copy()
+    top_communities_for_chart = community_genre_df.head(15).copy()
     top_communities_for_chart["Community Label"] = (
         "Community " + top_communities_for_chart["Community"].astype(str)
     )
