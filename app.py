@@ -671,35 +671,72 @@ with tabs[5]:
 
     with left2:
         st.subheader("Degree Distribution")
+
         degrees = [deg for _, deg in G.degree()]
-        fig_hist, ax_hist = plt.subplots(figsize=(7, 3.8))
-        ax_hist.hist(degrees, bins=30)
-        ax_hist.set_title('Degree Distribution')
-        ax_hist.set_xlabel('Degree')
-        ax_hist.set_ylabel('Number of Actors')
-        style_dark_chart(fig_hist, ax_hist)
-        st.pyplot(fig_hist)
+
+        fig_hist = px.histogram(
+            x=degrees,
+            nbins=30,
+            labels={"x": "Degree", "y": "Number of Actors"},
+            title="Degree Distribution"
+        )
+
+        fig_hist.update_traces(
+            hovertemplate="Degree: %{x}<br>Number of Actors: %{y}"
+        )
+
+        fig_hist.update_layout(
+            template="plotly_dark",
+            bargap=0.1
+        )
+
+        st.plotly_chart(fig_hist, use_container_width=True)
+
 
     with middle2:
         st.subheader("Component Sizes")
-        component_sizes = sorted([len(c) for c in results['components']], reverse=True)
-        fig_comp, ax_comp = plt.subplots(figsize=(7, 3.8))
-        ax_comp.hist(component_sizes, bins=20)
-        ax_comp.set_title('Connected Component Sizes')
-        ax_comp.set_xlabel('Component Size')
-        ax_comp.set_ylabel('Frequency')
-        style_dark_chart(fig_comp, ax_comp)
-        st.pyplot(fig_comp)
 
+        component_sizes = sorted([len(c) for c in results['components']], reverse=True)
+
+        fig_comp = px.histogram(
+            x=component_sizes,
+            nbins=20,
+            labels={"x": "Component Size", "y": "Frequency"},
+            title="Connected Component Sizes"
+        )
+
+        fig_comp.update_traces(
+            hovertemplate="Component Size: %{x}<br>Frequency: %{y}"
+        )
+
+        fig_comp.update_layout(
+            template="plotly_dark",
+            bargap=0.1
+        )
+
+        st.plotly_chart(fig_comp, use_container_width=True)
+
+ 
     with right2:
         st.subheader("Community Sizes")
-        fig_comm, ax_comm = plt.subplots(figsize=(7, 3.8))
-        ax_comm.hist(results['community_sizes'], bins=20)
-        ax_comm.set_title('Community Sizes')
-        ax_comm.set_xlabel('Community Size')
-        ax_comm.set_ylabel('Frequency')
-        style_dark_chart(fig_comm, ax_comm)
-        st.pyplot(fig_comm)
+
+        fig_comm = px.histogram(
+            x=results['community_sizes'],
+            nbins=20,
+            labels={"x": "Community Size", "y": "Frequency"},
+            title="Community Sizes"
+        )
+
+        fig_comm.update_traces(
+            hovertemplate="Community Size: %{x}<br>Frequency: %{y}"
+        )
+
+        fig_comm.update_layout(
+            template="plotly_dark",
+            bargap=0.1
+        )
+
+        st.plotly_chart(fig_comm, use_container_width=True)
 
     st.subheader("Interpretations:")
     st.markdown(
